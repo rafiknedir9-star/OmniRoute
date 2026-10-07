@@ -1022,7 +1022,8 @@ export class CursorExecutor extends BaseExecutor {
     }
   }
 
-  async buildHeaders(credentials) {
+  // Async (awaits the pinned CLI version), so it must not override sync BaseExecutor.buildHeaders.
+  async buildCursorHeaders(credentials) {
     const ghostMode = credentials.providerSpecificData?.ghostMode !== false;
     const cleanToken = stripCursorOAuthTokenPrefix(credentials.accessToken ?? "");
     const requestId = crypto.randomUUID();
@@ -1254,7 +1255,7 @@ export class CursorExecutor extends BaseExecutor {
       url = await resolveCursorAgentUrl(executionCredentials, signal);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const headers = await this.buildHeaders(executionCredentials);
+      const headers = await this.buildCursorHeaders(executionCredentials);
       return {
         response: new Response(
           JSON.stringify({
@@ -1274,7 +1275,7 @@ export class CursorExecutor extends BaseExecutor {
         transformedBody: body,
       };
     }
-    const headers = await this.buildHeaders(executionCredentials);
+    const headers = await this.buildCursorHeaders(executionCredentials);
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     const messages: ChatMessage[] = body.messages || [];
