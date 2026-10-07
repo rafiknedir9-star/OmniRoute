@@ -319,7 +319,8 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       JSON.stringify({
         v: 2,
         identityFingerprint: fingerprint,
-        models: [{ id: "good-1" }],
+        // tool_calling: the default toolsOnly filter (#15484) would otherwise drop the entry.
+        models: [{ id: "good-1", capabilities: { tool_calling: true } }],
         combos: [],
         autoCombos: [{ id: "auto" }],
         providers: [],
