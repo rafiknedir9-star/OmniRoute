@@ -142,6 +142,12 @@ jobs:
       - run: npm run check:any-budget:t11
       - run: npm run check:provider-consistency
       - run: npm run check:model-lifecycle
+      # The audited commit can live only on an upstream branch that was squash-merged, so
+      # a fork's full clone does not contain it. Fetch it by SHA (a no-op when present).
+      - name: Fetch the audited provider-asset commit
+        run: |
+          sha=$(node -e 'const l=require("fs").readFileSync("config/quality/provider-assets-provenance.jsonl","utf8").split("\n")[0];process.stdout.write(JSON.parse(l).auditedCommit)')
+          git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --no-tags --depth=1 origin "$sha"
       - run: npm run check:provider-asset-provenance
       - run: npm run check:fetch-targets
       - run: npm run check:deps
@@ -738,6 +744,18 @@ jobs:
       # /api/monitoring/health 200). Downstream jobs (e2e ×9, package-artifact,
       # electron-package-smoke) consume this artifact, so a green run here validates
       # the Turbopack artifact end-to-end.
+      # A next build peaks at 14-16 GB RSS (see the concurrency note above). A standard
+      # hosted runner has 16 GB, so without extra swap the VM is killed mid-build
+      # ("runner has received a shutdown signal"). The self-hosted runner skips this.
+      - name: Add swap on hosted runners
+        if: runner.environment == 'github-hosted'
+        run: |
+          sudo swapoff -a || true
+          sudo fallocate -l 16G /mnt/omniroute.swap
+          sudo chmod 600 /mnt/omniroute.swap
+          sudo mkswap /mnt/omniroute.swap
+          sudo swapon /mnt/omniroute.swap
+          free -h
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
