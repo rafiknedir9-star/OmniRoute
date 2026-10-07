@@ -312,7 +312,7 @@ function enableMac() {
   // PID — nothing more to do for the current session.
   if (isAgentSelfMac() || isDetachedTrayWorker()) return existsSync(plistPath);
   try {
-    execSync("launchctl load -w " + JSON.stringify(plistPath), { stdio: "ignore" });
+    execFileSync("launchctl", ["load", "-w", plistPath], { stdio: "ignore" });
   } catch {}
   return existsSync(plistPath);
 }
@@ -325,7 +325,7 @@ function disableMac() {
   // Removing the plist file is enough to stop the agent at the next login.
   if (!isAgentSelfMac() && !isDetachedTrayWorker()) {
     try {
-      execSync("launchctl unload -w " + JSON.stringify(plistPath), { stdio: "ignore" });
+      execFileSync("launchctl", ["unload", "-w", plistPath], { stdio: "ignore" });
     } catch {}
   }
   try {

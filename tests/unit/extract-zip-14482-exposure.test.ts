@@ -67,9 +67,11 @@ test("extract-zip (GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv) is reachable only 
     "root project must not depend on extract-zip directly (dev)"
   );
 
-  // 2. Exactly one package in the whole tree declares a dependency on extract-zip,
-  //    and it must be @openai/codex-security.
+  // 2. At most one package in the whole tree declares a dependency on extract-zip,
+  //    and it must be @openai/codex-security. promptfoo >=0.124 no longer pulls it
+  //    in at all, which is the safest outcome: nothing left to check.
   const extractZipDependents = declaredDependents(lock, "extract-zip");
+  if (extractZipDependents.length === 0) return;
   assert.deepEqual(
     extractZipDependents,
     ["node_modules/@openai/codex-security"],
